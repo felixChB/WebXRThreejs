@@ -3,6 +3,8 @@ const socket = io();
 let playerID = null;
 let thisPlayer = null;
 let thisPlayerColor = null;
+let thisPlayerContrR = null;
+let thisPlayerContrL = null;
 
 //let previousPosition = null;
 //let previousRotation = null;
@@ -34,18 +36,18 @@ AFRAME.registerComponent('sync-move', {
     }
 });*/
 
-AFRAME.registerComponent('rotation-reader', {
-    tick: function () {
-      // `this.el` is the element.
-      // `object3D` is the three.js object.
-  
-      // `rotation` is a three.js Euler using radians. `quaternion` also available.
-      console.log(this.el.object3D.rotation);
-  
-      // `position` is a three.js Vector3.
-      console.log(this.el.object3D.position);
-    }
-  });
+// AFRAME.registerComponent('rotation-reader', {
+//     tick: function () {
+//         // `this.el` is the element.
+//         // `object3D` is the three.js object.
+
+//         // `rotation` is a three.js Euler using radians. `quaternion` also available.
+//         console.log(this.el.object3D.rotation);
+
+//         // `position` is a three.js Vector3.
+//         console.log(this.el.object3D.position);
+//     }
+// });
 
 socket.on('yourPlayerInfo', (socket) => {
 
@@ -57,12 +59,16 @@ socket.on('yourPlayerInfo', (socket) => {
     addPlayer(socket);
     // get the Player Entity
     thisPlayer = document.getElementById(playerID);
+    thisPlayerContrR = document.getElementById(playerID + '_contr_r');
+    thisPlayerContrL = document.getElementById(playerID + '_contr_l');
     // give yourself movement and rotation controls
     thisPlayer.setAttribute('camera', '');
     thisPlayer.setAttribute('look-controls', '');
     thisPlayer.setAttribute('wasd-controls', '');
     thisPlayer.setAttribute('rotation-reader', '');
-    //thisPlayer.setAttribute('sync-move', '');
+
+    thisPlayerContrR.setAttribute('tracked-controls', 'controller: 0; idPrefix: OpenVR');
+    thisPlayerContrL.setAttribute('tracked-controls', 'controller: 1; idPrefix: OpenVR');
 });
 
 
@@ -90,12 +96,28 @@ socket.on('currentState', (players) => {
 
 // Spawn Player Entity with the Connection ID
 function addPlayer(player) {
-    const el = document.createElement('a-box');
-    el.setAttribute('id', player.id);
-    el.setAttribute('position', player.position);
-    el.setAttribute('rotation', player.rotation);
-    el.setAttribute('color', player.color);
-    document.querySelector('a-scene').appendChild(el);
+    const playerElem = document.createElement('a-box');
+    playerElem.setAttribute('id', player.id);
+    playerElem.setAttribute('position', player.position);
+    playerElem.setAttribute('rotation', player.rotation);
+    playerElem.setAttribute('color', player.color);
+    document.querySelector('a-scene').appendChild(playerElem);
+
+    const playerContrR = document.createElement('a-box');
+    playerContrR.setAttribute('id', player.id + '_contr_r');
+    playerContrR.setAttribute('position', player.contr_pos_r);
+    playerContrR.setAttribute('rotation', player.contr_rot_r);
+    playerContrR.setAttribute('color', player.color);
+    playerContrR.setAttribute('scale', '0.3 0.3 0.3');
+    document.querySelector('a-scene').appendChild(playerContrR);
+
+    const playerContrL = document.createElement('a-box');
+    playerContrL.setAttribute('id', player.id + '_contr_l');
+    playerContrL.setAttribute('position', player.contr_pos_l);
+    playerContrL.setAttribute('rotation', player.contr_rot_l);
+    playerContrL.setAttribute('color', player.color);
+    playerContrL.setAttribute('scale', '0.3 0.3 0.3');
+    document.querySelector('a-scene').appendChild(playerContrL);
 }
 
 socket.on('newPlayer', (player) => {
@@ -130,7 +152,11 @@ setInterval(function () {
     if (thisPlayer) {
         socket.emit('update', {
             position: thisPlayer.getAttribute('position'),
-            rotation: thisPlayer.getAttribute('rotation')
+            rotation: thisPlayer.getAttribute('rotation'),
+            contr_pos_r: thisPlayerContrR.getAttribute('position'),
+            contr_pos_l: thisPlayerContrL.getAttribute('position'),
+            contr_rot_r: thisPlayerContrR.getAttribute('rotation'),
+            contr_rot_l: thisPlayerContrL.getAttribute('rotation')
         });
     }
-}, 10);
+}, 20);
