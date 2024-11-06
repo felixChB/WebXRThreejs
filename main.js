@@ -1,53 +1,71 @@
 const socket = io();
 
-let playerID = null;
-let thisPlayer = null;
-let thisPlayerColor = null;
-let thisPlayerContrR = null;
-let thisPlayerContrL = null;
+let playerID, thisPlayerColor;
+let thisPlayer, thisPlayerContrR, thisPlayerContrL;
 
-//let previousPosition = null;
-//let previousRotation = null;
+let camera, scene, renderer;
+let controller1, controller2;
 
-/*
-AFRAME.registerComponent('sync-move', {
-    update: function () {
-        const position = this.el.getAttribute('position');
-        const rotation = this.el.getAttribute('rotation');
+AFRAME.registerComponent('controller-handler', {
+    init: function () {
+        this.controller1 = this.el.sceneEl.renderer.xr.getController(0);
+        this.controller2 = this.el.sceneEl.renderer.xr.getController(1);
 
-        // Check if position or rotation has changed
-        if (!previousPosition || !previousRotation ||
-            position.x !== previousPosition.x || position.y !== previousPosition.y || position.z !== previousPosition.z ||
-            rotation.x !== previousRotation.x || rotation.y !== previousRotation.y || rotation.z !== previousRotation.z) {
+        console.log('Controller 1:', this.controller1);
+        console.log('Controller 2:', this.controller2);
+    },
+});
 
-            console.log('Player moved');
+AFRAME.registerComponent('net-sync', {
+    init: function () {
+        this.player = this.el;
 
-            // Emit playerMoved event to the server
-            socket.emit('playerMoved', {
-                id: socket.id,
-                position: position,
-                rotation: rotation
-            });
+        this.controller1 = this.el.sceneEl.renderer.xr.getController(0);
+        this.controller2 = this.el.sceneEl.renderer.xr.getController(1);
 
-            // Update previous position and rotation
-            previousPosition = position;
-            previousRotation = rotation;
+        console.log('Controller 1:', this.controller1);
+        console.log('Controller 2:', this.controller2);
+    },
+    tick: function () {
+
+        let updateMessage;
+
+        if (this.player) {
+            updateMessage += {
+                position: this.player.getAttribute('position'),
+                rotation: this.player.getAttribute('rotation')
+            };
         }
+        if (this.controller1) {
+            updateMessage += {
+                contr_pos_r: this.controller1.position,
+                contr_rot_r: this.controller1.rotation
+            };
+            //console.log('Controller 1 Position:', this.controller1.position);
+            //console.log('Controller 1 Rotation:', this.controller1.rotation);
+        }
+        if (this.controller2) {
+            updateMessage += {
+                contr_pos_l: this.controller2.position,
+                contr_rot_l: this.controller2.rotation
+            };
+            //console.log('Controller 2 Position:', this.controller2.position);
+            //console.log('Controller 2 Rotation:', this.controller2.rotation);
+        }
+
+        console.log('Update Message:', updateMessage);
+        socket.emit('update', updateMessage);
     }
-});*/
+});
 
-// AFRAME.registerComponent('rotation-reader', {
-//     tick: function () {
-//         // `this.el` is the element.
-//         // `object3D` is the three.js object.
+// scene = this.el.sceneEl.object3D;
 
-//         // `rotation` is a three.js Euler using radians. `quaternion` also available.
-//         console.log(this.el.object3D.rotation);
+// renderer = this.el.sceneEl.renderer;
 
-//         // `position` is a three.js Vector3.
-//         console.log(this.el.object3D.position);
-//     }
-// });
+// console.log('scene');
+// console.log(scene);
+// console.log('renderer');
+// console.log(renderer);
 
 socket.on('yourPlayerInfo', (socket) => {
 
@@ -65,10 +83,16 @@ socket.on('yourPlayerInfo', (socket) => {
     thisPlayer.setAttribute('camera', '');
     thisPlayer.setAttribute('look-controls', '');
     thisPlayer.setAttribute('wasd-controls', '');
-    thisPlayer.setAttribute('rotation-reader', '');
+    thisPlayer.setAttribute('controller-handler', '');
 
-    thisPlayerContrR.setAttribute('tracked-controls', 'controller: 0; idPrefix: OpenVR');
-    thisPlayerContrL.setAttribute('tracked-controls', 'controller: 1; idPrefix: OpenVR');
+    thisPlayerContrR.setAttribute('tracked-controls', 'controller: 0');
+    thisPlayerContrL.setAttribute('tracked-controls', 'controller: 1');
+
+
+    // controller1 = renderer.xr.getController(0);
+    // controller2 = renderer.xr.getController(1);
+    // console.log(controller1);
+    // console.log(controller2);
 });
 
 
