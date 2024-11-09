@@ -6,6 +6,8 @@ let thisPlayer, thisPlayerContrR, thisPlayerContrL;
 let camera, scene, renderer;
 let controller1, controller2;
 
+let updateMessage;
+
 AFRAME.registerComponent('controller-handler', {
     init: function () {
         this.controller1 = this.el.sceneEl.renderer.xr.getController(0);
@@ -27,8 +29,6 @@ AFRAME.registerComponent('net-sync', {
         console.log('Controller 2:', this.controller2);
     },
     tick: function () {
-
-        let updateMessage;
 
         if (this.player) {
             updateMessage += {
@@ -108,12 +108,22 @@ socket.on('colorChanged', (color) => {
 socket.on('currentState', (players) => {
     Object.keys(players).forEach((id) => {
         let playerByID = document.getElementById(id) || addPlayer(players[id]);
+        let playerContrR = document.getElementById(id + '_contr_r');
+        let playerContrL = document.getElementById(id + '_contr_l');
         if (playerByID) {
             playerByID.setAttribute('position', players[id].position);
             playerByID.setAttribute('rotation', players[id].rotation);
 
             //playerByID.object3D.position.set(players[id].position.x, players[id].position.y, players[id].position.z);
             //playerByID.object3D.rotation.set(players[id].rotation.x, players[id].rotation.y, players[id].rotation.z);
+        }
+        if (playerContrR) {
+            playerContrR.setAttribute('position', players[id].contr_pos_r);
+            playerContrR.setAttribute('rotation', players[id].contr_rot_r);
+        }
+        if (playerContrL) {
+            playerContrL.setAttribute('position', players[id].contr_pos_l);
+            playerContrL.setAttribute('rotation', players[id].contr_rot_l);
         }
     });
 });

@@ -1,5 +1,7 @@
 import express from "express";
-import { createServer } from "http";
+import { readFileSync } from "fs";
+import { createServer } from "https";
+// import { createServer } from "http";
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Server } from "socket.io";
@@ -8,10 +10,20 @@ import { SocketAddress } from "net";
 const port = process.env.PORT || 3000;
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, { /* options */ });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+// const httpServer = createServer(app);
+
+// Construct the absolute path for the SSL certificate files
+const keyPath = join(__dirname, 'sslcerts', 'selfsigned.key');
+const certPath = join(__dirname, 'sslcerts', 'selfsigned.cert');
+
+const httpsServer = createServer({
+    key: readFileSync(keyPath),
+    cert: readFileSync(certPath)
+}, app);
+
+const io = new Server(httpsServer, { /* options */ });
 
 app.get('/', (req, res) => {
     res.sendFile(join(__dirname, 'index.html'));
@@ -35,7 +47,7 @@ const playerCol4 = '#ffff00';
 
 const maxPlayers = 4;
 const playerColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
-const startPositions = [{x: 5, y: 2, z: 0}, {x: -5, y: 2, z: 0}, {x: 0, y: 2, z: 5}, {x: 0, y: 2, z: -5}];
+const startPositions = [{ x: 5, y: 2, z: 0 }, { x: -5, y: 2, z: 0 }, { x: 0, y: 2, z: 5 }, { x: 0, y: 2, z: -5 }];
 ////////////////////////////////////////////////////////////////////////////////
 
 // Generate a random spawn coordinate between -5 and 5
@@ -66,8 +78,8 @@ io.on('connection', (socket) => {
         rotation: { x: 0, y: 0, z: 0 },
         contr_pos_r: playerStartPos,
         contr_pos_l: playerStartPos,
-        contr_rot_r: { x: 0, y: 0, z: 0},
-        contr_rot_l: { x: 0, y: 0, z: 0},
+        contr_rot_r: { x: 0, y: 0, z: 0 },
+        contr_rot_l: { x: 0, y: 0, z: 0 },
         color: playerColors.shift()
     };
 
@@ -125,8 +137,8 @@ io.on('connection', (socket) => {
     });
 });
 
-httpServer.listen(port, () => {
-    console.log('Server is listening on port http://localhost:' + port);
+httpsServer.listen(port, () => {
+    console.log('Server is listening on port https://localhost:' + port);
 });
 
 
