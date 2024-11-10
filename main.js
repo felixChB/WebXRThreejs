@@ -30,6 +30,8 @@ AFRAME.registerComponent('net-sync', {
     },
     tick: function () {
 
+        updateMessage = {};
+
         if (this.player) {
             updateMessage += {
                 position: this.player.getAttribute('position'),
@@ -55,17 +57,10 @@ AFRAME.registerComponent('net-sync', {
 
         console.log('Update Message:', updateMessage);
         socket.emit('update', updateMessage);
+
+        updateMessage = {};
     }
 });
-
-// scene = this.el.sceneEl.object3D;
-
-// renderer = this.el.sceneEl.renderer;
-
-// console.log('scene');
-// console.log(scene);
-// console.log('renderer');
-// console.log(renderer);
 
 socket.on('yourPlayerInfo', (socket) => {
 
@@ -84,6 +79,7 @@ socket.on('yourPlayerInfo', (socket) => {
     thisPlayer.setAttribute('look-controls', '');
     thisPlayer.setAttribute('wasd-controls', '');
     thisPlayer.setAttribute('controller-handler', '');
+    thisPlayer.setAttribute('net-sync', '');
 
     thisPlayerContrR.setAttribute('tracked-controls', 'controller: 0');
     thisPlayerContrL.setAttribute('tracked-controls', 'controller: 1');

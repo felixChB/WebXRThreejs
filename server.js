@@ -39,21 +39,10 @@ const color1 = '#d60040';
 const color2 = '#91ff42';
 var aciveColor;
 
-// Player Colors
-const playerCol1 = '#ff0000';
-const playerCol2 = '#00ff00';
-const playerCol3 = '#0000ff';
-const playerCol4 = '#ffff00';
-
 const maxPlayers = 4;
 const playerColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
 const startPositions = [{ x: 5, y: 2, z: 0 }, { x: -5, y: 2, z: 0 }, { x: 0, y: 2, z: 5 }, { x: 0, y: 2, z: -5 }];
 ////////////////////////////////////////////////////////////////////////////////
-
-// Generate a random spawn coordinate between -5 and 5
-function getRandomCoordinate() {
-    return (Math.random() * 10) - 5;
-}
 
 // Handle connections and logic
 io.on('connection', (socket) => {
@@ -67,13 +56,13 @@ io.on('connection', (socket) => {
         return;
     }
 
+    // Set the start position for the new player
     const playerStartPos = startPositions.shift();
 
     // Add new player to the game
     players[socket.id] = {
         id: socket.id,
         startPosition: playerStartPos,
-        //position: { x: playerStartPos.x, y: playerStartPos.y, z: playerStartPos.z },
         position: playerStartPos,
         rotation: { x: 0, y: 0, z: 0 },
         contr_pos_r: playerStartPos,
@@ -88,8 +77,6 @@ io.on('connection', (socket) => {
 
     // Notify other players of the new player
     socket.broadcast.emit('newPlayer', players[socket.id]);
-
-    // console.log(players);
 
     // Send the current state to the new player
     socket.emit('currentState', players);
@@ -114,13 +101,6 @@ io.on('connection', (socket) => {
         }
         // console.log(aciveColor);
         io.emit('colorChanged', aciveColor);
-    });
-
-    // Handle player movement
-    socket.on('playerMoved', (data) => {
-        players[socket.id].position = data.position;
-        players[socket.id].rotation = data.rotation;
-        io.emit('playerMoved', players[socket.id]);
     });
 
     // Handle player disconnection
